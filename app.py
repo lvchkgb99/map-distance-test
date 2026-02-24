@@ -70,6 +70,15 @@ MODE_LABELS = {
     "dlr": "DLR",
 }
 
+# ── Session state defaults ────────────────────────────────────────────────
+
+if "result" not in st.session_state:
+    st.session_state.result = None   # holds journey data once fetched
+if "error" not in st.session_state:
+    st.session_state.error = None
+if "map_data" not in st.session_state:
+    st.session_state.map_data = None  # (from_lat, from_lng, to_lat, to_lng)
+
 # ── Layout ────────────────────────────────────────────────────────────────
 
 left, right = st.columns([1, 2], gap="large")
@@ -78,99 +87,105 @@ with left:
     from_input = st.text_input("Your Location", placeholder="e.g. Baker Street, London")
     to_input = st.text_input("Office Location", placeholder="e.g. Canary Wharf, London")
     calculate = st.button("Calculate Journey", use_container_width=True, type="primary")
-    result_area = st.container()
 
-# ── Calculation ───────────────────────────────────────────────────────────
+# ── On button click: fetch data and store in session state ────────────────
 
 if calculate:
+    st.session_state.result = None
+    st.session_state.error = None
+    st.session_state.map_data = None
+
     if not from_input or not to_input:
-        result_area.warning("Please enter both locations.")
+        st.session_state.error = "Please enter both locations."
     else:
         with st.spinner("Geocoding locations and fetching TfL journey…"):
             try:
-                from_lat, from_lng, from_display = geocode(from_input)
-                to_lat, to_lng, to_display = geocode(to_input)
-
+                from_lat, from_lng, _ = geocode(from_input)
+                to_lat, to_lng, _ = geocode(to_input)
                 data = get_tfl_journey(from_lat, from_lng, to_lat, to_lng)
 
                 if not data.get("journeys"):
-                    result_area.error(
+                    st.session_state.error = (
                         "No tube journey found. Locations may be outside the TfL network "
                         "or too close together."
                     )
                 else:
-                    journey = data["journeys"][0]
-                    duration = journey["duration"]
-
-                    # ── Results panel ──────────────────────────────────────
-                    with result_area:
-                        st.metric("Fastest Journey Time", format_duration(duration))
-
-                        st.markdown(
-                            f"**From:** {from_input}  \n**To:** {to_input}"
-                        )
-
-                        st.markdown("**Steps**")
-                        for leg in journey["legs"]:
-                            mode = leg.get("mode", {}).get("name", "walking")
-                            summary = (
-                                leg.get("instruction", {}).get("summary")
-                                or leg.get("instruction", {}).get("detailed")
-                                or MODE_LABELS.get(mode, mode)
-                            )
-                            colour = MODE_COLOURS.get(mode, "#374151")
-                            label = MODE_LABELS.get(mode, mode)
-                            st.markdown(
-                                f'<span style="background:{colour};color:#fff;'
-                                f'padding:2px 8px;border-radius:4px;font-size:12px;'
-                                f'font-weight:700">{label}</span> {summary}',
-                                unsafe_allow_html=True,
-                            )
-
-                        st.caption("Journey data © Transport for London")
-
-                    # ── Map ────────────────────────────────────────────────
-                    center_lat = (from_lat + to_lat) / 2
-                    center_lng = (from_lng + to_lng) / 2
-                    m = folium.Map(location=[center_lat, center_lng], zoom_start=12)
-
-                    folium.Marker(
-                        [from_lat, from_lng],
-                        popup=f"<b>Your Location</b><br>{from_input}",
-                        tooltip="Your Location (A)",
-                        icon=folium.Icon(color="blue", icon="home", prefix="fa"),
-                    ).add_to(m)
-
-                    folium.Marker(
-                        [to_lat, to_lng],
-                        popup=f"<b>Office Location</b><br>{to_input}",
-                        tooltip="Office Location (B)",
-                        icon=folium.Icon(color="red", icon="briefcase", prefix="fa"),
-                    ).add_to(m)
-
-                    folium.PolyLine(
-                        [[from_lat, from_lng], [to_lat, to_lng]],
-                        color="#0019a8",
-                        weight=2,
-                        dash_array="6 6",
-                        opacity=0.7,
-                    ).add_to(m)
-
-                    # Fit bounds
-                    m.fit_bounds([[from_lat, from_lng], [to_lat, to_lng]], padding=(50, 50))
-
-                    with right:
-                        st_folium(m, use_container_width=True, height=520)
+                    st.session_state.result = {
+                        "journey": data["journeys"][0],
+                        "from_input": from_input,
+                        "to_input": to_input,
+                    }
+                    st.session_state.map_data = (from_lat, from_lng, to_lat, to_lng)
 
             except ValueError as e:
-                result_area.error(str(e))
+                st.session_state.error = str(e)
             except requests.HTTPError as e:
-                result_area.error(f"API error: {e}")
+                st.session_state.error = f"API error: {e}"
             except Exception as e:
-                result_area.error(f"Something went wrong: {e}")
+                st.session_state.error = f"Something went wrong: {e}"
 
-else:
-    # Show default map of London
-    with right:
+# ── Render results from session state (persists across reruns) ────────────
+
+with left:
+    if st.session_state.error:
+        st.error(st.session_state.error)
+
+    if st.session_state.result:
+        r = st.session_state.result
+        journey = r["journey"]
+        duration = journey["duration"]
+
+        st.metric("Fastest Journey Time", format_duration(duration))
+        st.markdown(f"**From:** {r['from_input']}  \n**To:** {r['to_input']}")
+        st.markdown("**Steps**")
+
+        for leg in journey["legs"]:
+            mode = leg.get("mode", {}).get("name", "walking")
+            summary = (
+                leg.get("instruction", {}).get("summary")
+                or leg.get("instruction", {}).get("detailed")
+                or MODE_LABELS.get(mode, mode)
+            )
+            colour = MODE_COLOURS.get(mode, "#374151")
+            label = MODE_LABELS.get(mode, mode)
+            st.markdown(
+                f'<span style="background:{colour};color:#fff;padding:2px 8px;'
+                f'border-radius:4px;font-size:12px;font-weight:700">{label}</span> {summary}',
+                unsafe_allow_html=True,
+            )
+
+        st.caption("Journey data © Transport for London")
+
+# ── Map (always rendered on the right) ───────────────────────────────────
+
+with right:
+    if st.session_state.map_data:
+        from_lat, from_lng, to_lat, to_lng = st.session_state.map_data
+        r = st.session_state.result
+        m = folium.Map(location=[(from_lat + to_lat) / 2, (from_lng + to_lng) / 2], zoom_start=12)
+
+        folium.Marker(
+            [from_lat, from_lng],
+            popup=f"<b>Your Location</b><br>{r['from_input']}",
+            tooltip="Your Location (A)",
+            icon=folium.Icon(color="blue", icon="home", prefix="fa"),
+        ).add_to(m)
+
+        folium.Marker(
+            [to_lat, to_lng],
+            popup=f"<b>Office Location</b><br>{r['to_input']}",
+            tooltip="Office Location (B)",
+            icon=folium.Icon(color="red", icon="briefcase", prefix="fa"),
+        ).add_to(m)
+
+        folium.PolyLine(
+            [[from_lat, from_lng], [to_lat, to_lng]],
+            color="#0019a8", weight=2, dash_array="6 6", opacity=0.7,
+        ).add_to(m)
+
+        m.fit_bounds([[from_lat, from_lng], [to_lat, to_lng]], padding=(50, 50))
+    else:
         m = folium.Map(location=[51.509865, -0.118092], zoom_start=11)
-        st_folium(m, use_container_width=True, height=520)
+
+    # returned_objects=[] prevents the map from triggering a Streamlit rerun
+    st_folium(m, use_container_width=True, height=520, returned_objects=[])
