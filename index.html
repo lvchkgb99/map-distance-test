@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>London Tube Journey Planner</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="sidebar">
+    <div class="sidebar-header">
+      <h1>🚇 Tube Journey Planner</h1>
+      <p class="subtitle">Find your fastest route across London</p>
+    </div>
+
+    <div class="input-group">
+      <label for="from-input">Your Location</label>
+      <input
+        type="text"
+        id="from-input"
+        placeholder="e.g. 221B Baker Street, London"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="input-group">
+      <label for="to-input">Office Location</label>
+      <input
+        type="text"
+        id="to-input"
+        placeholder="e.g. Canary Wharf, London"
+        autocomplete="off"
+      />
+    </div>
+
+    <button id="calculate-btn">Calculate Journey</button>
+
+    <div id="result"></div>
+
+    <footer>
+      <p>Map data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors</p>
+      <p>Journey data by <a href="https://api.tfl.gov.uk" target="_blank">Transport for London</a></p>
+    </footer>
+  </div>
+
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

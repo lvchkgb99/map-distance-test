@@ -1,0 +1,245 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f0f2f5;
+}
+
+/* ── Sidebar ── */
+#sidebar {
+  width: 360px;
+  min-width: 320px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 20px;
+  overflow-y: auto;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+
+.sidebar-header h1 {
+  font-size: 20px;
+  color: #1a1a2e;
+}
+
+.sidebar-header .subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* ── Inputs ── */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.input-group input {
+  padding: 10px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+  border-color: #0019a8;
+}
+
+/* ── Button ── */
+#calculate-btn {
+  padding: 12px;
+  background: #0019a8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+#calculate-btn:hover:not(:disabled) {
+  background: #001acf;
+}
+
+#calculate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Result ── */
+#result {
+  flex: 1;
+}
+
+.loading {
+  color: #6b7280;
+  font-size: 14px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.error {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+}
+
+.result-card {
+  background: #f8faff;
+  border: 1.5px solid #dde4f7;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.result-card h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.duration {
+  font-size: 36px;
+  font-weight: 700;
+  color: #0019a8;
+  margin-bottom: 12px;
+}
+
+.route-info {
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.6;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.result-card h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.legs {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.legs li {
+  font-size: 12px;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mode-tag {
+  background: #e0e7ff;
+  color: #3730a3;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.tfl-credit {
+  font-size: 11px;
+  color: #9ca3af;
+  text-align: right;
+}
+
+.tfl-credit a {
+  color: #6b7280;
+}
+
+/* ── Footer ── */
+footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+footer p {
+  font-size: 11px;
+  color: #9ca3af;
+  line-height: 1.6;
+}
+
+footer a {
+  color: #6b7280;
+}
+
+/* ── Map ── */
+#map {
+  flex: 1;
+  z-index: 0;
+}
+
+/* ── Custom map markers ── */
+.pin {
+  width: 32px;
+  height: 32px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.pin span {
+  transform: rotate(45deg);
+}
+
+.pin-from {
+  background: #0019a8;
+}
+
+.pin-to {
+  background: #dc2626;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  body {
+    flex-direction: column;
+  }
+  #sidebar {
+    width: 100%;
+    max-height: 55vh;
+  }
+  #map {
+    height: 45vh;
+  }
+}
